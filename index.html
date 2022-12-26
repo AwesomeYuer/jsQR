@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="format-detection" content="telephone=no">
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1,initial-scale=1,user-scalable=no">
+        <title>图片QR码识别</title>
+        <script src="scripts/jquery/jquery-3.5.1.js"></script>
+        <script src="dist/jsQR.js"></script>
+    </head>
+    <body>
+        <div>
+            <input type="file" accept="image/*" multiple  id="pictureSelect"/>
+        </div>
+        <div>
+            <span>QR码内容：</span>
+            <a id="result"></a>
+        </div>
+        <div>
+            <canvas id="qrCanvas"></canvas>
+        </div>
+    </body>
+
+    <script type="text/javascript">
+        $("#pictureSelect").change(function (event) {
+            var file = event.target.files[0];
+            if(window.FileReader) {
+                var fileReader = new FileReader();
+                fileReader.readAsDataURL(file);
+                fileReader.onloadend = function(event) {
+                    var base64Data = event.target.result;
+                    base64ToqR(base64Data)
+                }
+            }
+        })
+
+        function base64ToqR(data) {
+            var objCanvas = document.getElementById("qrCanvas");
+            var ctx = objCanvas.getContext("2d"); // 返回值是CanvasRenderingContext2D类的对象实例。
+     
+            var image = new Image();
+            image.src = data;
+
+            image.onload = function() {
+                ctx.drawImage(image, 0, 0, image.width, image.height); // 绘图
+
+                var imageData = ctx.getImageData(0, 0, image.width, image.height);
+
+                // QR码解析
+                const code = jsQR(
+                    imageData.data,   // 图像数据
+                    imageData.width,  // 宽度
+                    imageData.height, // 高度
+                    {
+                        // 可选的对象
+                        inversionAttempts: "dontInvert",
+                    }
+                );
+
+                if(code){
+                    $("#result")[0].innerHTML =code.data;
+                }else{
+                    $("#result")[0].innerHTML ="";
+                    alert("识别错误")
+                }
+            };
+        }
+    </script>
+</html>
